@@ -11,11 +11,13 @@ import com.hidarisoft.pospedidomicroservice.repository.PedidoRepository;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -45,46 +47,38 @@ public class PedidoService {
 
     @Transactional
     public PedidoDTO criar(PedidoDTO pedidoDTO) {
-        // Definir status inicial do pedido
-        if (pedidoDTO.getStatus() == null) {
-            pedidoDTO.setStatus(StatusPedido.CRIADO);
-        }
-
         // Converter para entidade e salvar
         Pedido pedido = pedidoMapper.toEntity(pedidoDTO);
         pedido = pedidoRepository.save(pedido);
-
-        // Converter de volta para DTO
-        PedidoDTO novoPedidoDTO = pedidoMapper.toDto(pedido);
+        log.info("Pedido criado com ID: {}", pedido.getId());
 
         // Solicitar criação de entrega para o pedido
         try {
             CriacaoEntregaDTO entregaDTO = new CriacaoEntregaDTO();
             entregaDTO.setPedidoId(pedido.getId());
-            entregaDTO.setTipo("NORMAL"); // Tipo padrão, mas pode ser personalizado com base em algum campo adicional no pedido
+            entregaDTO.setTipo(pedidoDTO.getTipoEntrega());
             entregaDTO.setEnderecoEntrega(pedido.getEnderecoEntrega());
 
             // Calcular o valor total do pedido a partir dos itens
             BigDecimal valorTotal = pedido.getItens().stream()
-                    .map(item -> {
-                        // Aqui seria ideal ter o preço unitário do produto, mas vamos assumir um valor fixo para exemplo
-                        BigDecimal precoUnitario = new BigDecimal("10.00"); // Valor fictício para exemplo
-                        return precoUnitario.multiply(new BigDecimal(item.getQuantidade()));
-                    })
+                    .map(item -> item.getPrecoUnitario().multiply(new BigDecimal(item.getQuantidade())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             entregaDTO.setValorPedido(valorTotal);
 
-            // Observações (opcional)
-            // entregaDTO.setObservacoes("Observações do pedido");
+            entregaDTO.setObservacoes(entregaDTO.getObservacoes());
 
-            entregaClient.criarEntrega(entregaDTO);
+            var response = entregaClient.criarEntrega(entregaDTO);
+            if (Boolean.TRUE.equals(HttpStatus.valueOf(response.getStatusCode().value()).is2xxSuccessful())) {
+                log.info("entrega criado com ID: {}", Objects.requireNonNull(response.getBody()).getId());
+            }
+
         } catch (FeignException e) {
             // Podemos logar o erro, mas não impedir a criação do pedido
             log.error("Erro ao solicitar criação de entrega: {}", e.getMessage());
         }
 
-        return novoPedidoDTO;
+        return pedidoDTO;
     }
 
     @Transactional

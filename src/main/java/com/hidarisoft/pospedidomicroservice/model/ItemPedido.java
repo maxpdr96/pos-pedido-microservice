@@ -12,12 +12,16 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "itens_pedido")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "pedido")
 public class ItemPedido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,4 +34,6 @@ public class ItemPedido {
     private String produto;
 
     private Integer quantidade;
+
+    private BigDecimal precoUnitario;
 }

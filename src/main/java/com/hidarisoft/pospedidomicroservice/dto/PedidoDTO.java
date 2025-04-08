@@ -2,6 +2,7 @@ package com.hidarisoft.pospedidomicroservice.dto;
 
 
 import com.hidarisoft.pospedidomicroservice.enums.StatusPedido;
+import com.hidarisoft.pospedidomicroservice.enums.TipoEntrega;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -27,6 +28,11 @@ public class PedidoDTO {
     private StatusPedido status;
 
     private LocalDateTime dataCriacao;
+
+    @NotNull(message = "Tipo de Entrega é obrigatório")
+    private TipoEntrega tipoEntrega;
+
+    private String observacao;
 
     @NotEmpty(message = "O pedido deve ter pelo menos um item")
     @Valid

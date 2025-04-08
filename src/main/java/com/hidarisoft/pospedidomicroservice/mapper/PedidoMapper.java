@@ -31,6 +31,7 @@ public interface PedidoMapper {
                 item.setProduto(itemDto.getProduto());
                 item.setQuantidade(itemDto.getQuantidade());
                 item.setPedido(entity);
+                item.setPrecoUnitario(itemDto.getPrecoUnitario());
                 entity.getItens().add(item);
             });
         }

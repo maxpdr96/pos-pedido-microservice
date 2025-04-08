@@ -1,6 +1,7 @@
 package com.hidarisoft.pospedidomicroservice.model;
 
 import com.hidarisoft.pospedidomicroservice.enums.StatusPedido;
+import com.hidarisoft.pospedidomicroservice.enums.TipoEntrega;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +15,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,18 +26,23 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "itens")
 public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long clienteId;
+
     private String enderecoEntrega;
 
     @Enumerated(EnumType.STRING)
     private StatusPedido status;
 
     private LocalDateTime dataCriacao;
+
+    @Enumerated(EnumType.STRING)
+    private TipoEntrega tipoEntrega;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemPedido> itens = new ArrayList<>();
