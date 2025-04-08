@@ -49,9 +49,7 @@ public class PedidoService {
 
     public PedidoDTO criar(PedidoDTO pedidoDTO) {
         Pedido pedido = salvaPedido(pedidoDTO);
-
-         chamaServicoEntrega(pedidoDTO, pedido);
-
+        chamaServicoEntrega(pedidoDTO, pedido);
         return pedidoDTO;
     }
 
@@ -63,7 +61,7 @@ public class PedidoService {
         return pedido;
     }
 
-    private Optional<EntregaResponseDTO> chamaServicoEntrega(PedidoDTO pedidoDTO, Pedido pedido) {
+    private void chamaServicoEntrega(PedidoDTO pedidoDTO, Pedido pedido) {
         // Solicitar criação de entrega para o pedido
         try {
             CriacaoEntregaDTO entregaDTO = new CriacaoEntregaDTO();
@@ -83,14 +81,11 @@ public class PedidoService {
             var response = entregaClient.criarEntrega(entregaDTO);
             if (Boolean.TRUE.equals(HttpStatus.valueOf(response.getStatusCode().value()).is2xxSuccessful())) {
                 log.info("entrega criado com ID: {}", Objects.requireNonNull(response.getBody()).getId());
-               return Optional.of(response.getBody());
             }
         } catch (FeignException e) {
             // Podemos logar o erro, mas não impedir a criação do pedido
             log.error("Erro ao solicitar criação de entrega: {}", e.getMessage());
         }
-
-        return Optional.empty();
     }
 
     @Transactional
