@@ -14,7 +14,15 @@ public class EntregaResponseDTO {
     private Long pedidoId;
     private Long entregadorId;
     private String nomeEntregador;
-    private String status;
+    private StatusEntrega status;
     private LocalDateTime dataInicio;
     private LocalDateTime dataFim;
+
+    public enum StatusEntrega {
+        PENDENTE,
+        EM_ROTA,
+        ENTREGUE,
+        CANCELADA
+    }
+
 }

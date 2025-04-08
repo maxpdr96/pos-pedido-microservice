@@ -3,6 +3,7 @@ package com.hidarisoft.pospedidomicroservice.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,6 @@ public class ItemPedidoDTO {
     private Integer quantidade;
 
     @NotNull(message = "O preco Unitario é obrigatória")
-    @Min(value = 1, message = "A quantidade deve ser maior que zero")
+    @Positive(message = "O valor do item deve ser positivo")
     private BigDecimal precoUnitario;
 }

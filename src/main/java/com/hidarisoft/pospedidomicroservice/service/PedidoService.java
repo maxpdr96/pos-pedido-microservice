@@ -3,8 +3,8 @@ package com.hidarisoft.pospedidomicroservice.service;
 import com.hidarisoft.pospedidomicroservice.client.EntregaClient;
 import com.hidarisoft.pospedidomicroservice.dto.AtualizacaoStatusDTO;
 import com.hidarisoft.pospedidomicroservice.dto.CriacaoEntregaDTO;
+import com.hidarisoft.pospedidomicroservice.dto.EntregaResponseDTO;
 import com.hidarisoft.pospedidomicroservice.dto.PedidoDTO;
-import com.hidarisoft.pospedidomicroservice.enums.StatusPedido;
 import com.hidarisoft.pospedidomicroservice.mapper.PedidoMapper;
 import com.hidarisoft.pospedidomicroservice.model.Pedido;
 import com.hidarisoft.pospedidomicroservice.repository.PedidoRepository;
@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -45,13 +46,24 @@ public class PedidoService {
         return pedidoMapper.toDto(pedido);
     }
 
-    @Transactional
+
     public PedidoDTO criar(PedidoDTO pedidoDTO) {
+        Pedido pedido = salvaPedido(pedidoDTO);
+
+         chamaServicoEntrega(pedidoDTO, pedido);
+
+        return pedidoDTO;
+    }
+
+    private Pedido salvaPedido(PedidoDTO pedidoDTO) {
         // Converter para entidade e salvar
         Pedido pedido = pedidoMapper.toEntity(pedidoDTO);
         pedido = pedidoRepository.save(pedido);
         log.info("Pedido criado com ID: {}", pedido.getId());
+        return pedido;
+    }
 
+    private Optional<EntregaResponseDTO> chamaServicoEntrega(PedidoDTO pedidoDTO, Pedido pedido) {
         // Solicitar criação de entrega para o pedido
         try {
             CriacaoEntregaDTO entregaDTO = new CriacaoEntregaDTO();
@@ -71,14 +83,14 @@ public class PedidoService {
             var response = entregaClient.criarEntrega(entregaDTO);
             if (Boolean.TRUE.equals(HttpStatus.valueOf(response.getStatusCode().value()).is2xxSuccessful())) {
                 log.info("entrega criado com ID: {}", Objects.requireNonNull(response.getBody()).getId());
+               return Optional.of(response.getBody());
             }
-
         } catch (FeignException e) {
             // Podemos logar o erro, mas não impedir a criação do pedido
             log.error("Erro ao solicitar criação de entrega: {}", e.getMessage());
         }
 
-        return pedidoDTO;
+        return Optional.empty();
     }
 
     @Transactional
