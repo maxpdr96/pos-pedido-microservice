@@ -1,5 +1,3 @@
-Claro! Aqui está o conteúdo transformado em um **Markdown mais limpo e bem formatado**, com indentação reduzida para facilitar a leitura:
-
 ---
 
 # Sistema de Pedidos e Entregas - Documentação Técnica
