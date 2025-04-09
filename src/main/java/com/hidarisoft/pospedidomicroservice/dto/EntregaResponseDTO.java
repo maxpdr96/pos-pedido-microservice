@@ -1,5 +1,6 @@
 package com.hidarisoft.pospedidomicroservice.dto;
 
+import com.hidarisoft.pospedidomicroservice.enums.StatusEntrega;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,12 +18,5 @@ public class EntregaResponseDTO {
     private StatusEntrega status;
     private LocalDateTime dataInicio;
     private LocalDateTime dataFim;
-
-    public enum StatusEntrega {
-        PENDENTE,
-        EM_ROTA,
-        ENTREGUE,
-        CANCELADA
-    }
 
 }
