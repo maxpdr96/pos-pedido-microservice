@@ -3,13 +3,17 @@ package com.hidarisoft.pospedidomicroservice.service;
 import com.hidarisoft.pospedidomicroservice.client.EntregaClient;
 import com.hidarisoft.pospedidomicroservice.dto.AtualizacaoStatusDTO;
 import com.hidarisoft.pospedidomicroservice.dto.CriacaoEntregaDTO;
+import com.hidarisoft.pospedidomicroservice.dto.EntregaDTO;
 import com.hidarisoft.pospedidomicroservice.dto.PedidoDTO;
+import com.hidarisoft.pospedidomicroservice.enums.StatusPedido;
+import com.hidarisoft.pospedidomicroservice.exception.PedidoJaEntregueException;
 import com.hidarisoft.pospedidomicroservice.mapper.PedidoMapper;
 import com.hidarisoft.pospedidomicroservice.model.Pedido;
 import com.hidarisoft.pospedidomicroservice.repository.PedidoRepository;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,9 +70,12 @@ public class PedidoService {
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Entrega criada com ID: {}", Objects.requireNonNull(response.getBody()).getId());
-            } else {
-                log.warn("Criação de entrega retornou status inesperado: {}", response.getStatusCode());
+                pedidoDTO.setStatus(StatusPedido.EM_TRANSPORTE);
+                return;
             }
+
+            pedidoDTO.setStatus(StatusPedido.PROCESSANDO);
+            log.warn("Criação de entrega retornou status inesperado: {}", response.getStatusCode());
 
         } catch (FeignException e) {
             // Loga o erro, mas não impedir a criação do pedido
@@ -105,5 +112,33 @@ public class PedidoService {
         pedido = pedidoRepository.save(pedido);
 
         return pedidoMapper.toDto(pedido);
+    }
+
+    @Transactional
+    public void excluirPedido(Long id) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com ID: " + id));
+
+        // Verificar se o pedido pode ser excluído
+        if (pedido.getStatus() == StatusPedido.ENTREGUE) {
+            throw new PedidoJaEntregueException(id);
+        }
+
+        // Verificar se existe uma entrega associada a este pedido
+        try {
+            ResponseEntity<EntregaDTO> response = entregaClient.buscarEntregaPorPedidoId(id);
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+
+                // Excluir a entrega antes de excluir o pedido
+                Long entregaId = response.getBody().getId();
+                entregaClient.excluirEntrega(entregaId);
+            }
+        } catch (Exception e) {
+            // Log o erro, mas continue com a exclusão do pedido
+            log.error("Erro ao tentar excluir entrega associada ao pedido {}: {}", id, e.getMessage());
+        }
+
+        // Excluir o pedido (e seus itens em cascata)
+        pedidoRepository.delete(pedido);
     }
 }
