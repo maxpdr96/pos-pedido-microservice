@@ -1,5 +1,3 @@
----
-
 # Sistema de Pedidos e Entregas - Documentação Técnica
 
 ## Pré-requisitos Iniciais
