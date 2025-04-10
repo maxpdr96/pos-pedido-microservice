@@ -3,7 +3,6 @@ package com.hidarisoft.pospedidomicroservice.service;
 import com.hidarisoft.pospedidomicroservice.client.EntregaClient;
 import com.hidarisoft.pospedidomicroservice.dto.AtualizacaoStatusDTO;
 import com.hidarisoft.pospedidomicroservice.dto.CriacaoEntregaDTO;
-import com.hidarisoft.pospedidomicroservice.dto.EntregaResponseDTO;
 import com.hidarisoft.pospedidomicroservice.dto.PedidoDTO;
 import com.hidarisoft.pospedidomicroservice.mapper.PedidoMapper;
 import com.hidarisoft.pospedidomicroservice.model.Pedido;
@@ -11,14 +10,12 @@ import com.hidarisoft.pospedidomicroservice.repository.PedidoRepository;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -64,28 +61,39 @@ public class PedidoService {
     private void chamaServicoEntrega(PedidoDTO pedidoDTO, Pedido pedido) {
         // Solicitar criação de entrega para o pedido
         try {
-            CriacaoEntregaDTO entregaDTO = new CriacaoEntregaDTO();
-            entregaDTO.setPedidoId(pedido.getId());
-            entregaDTO.setTipo(pedidoDTO.getTipoEntrega());
-            entregaDTO.setEnderecoEntrega(pedido.getEnderecoEntrega());
-
-            // Calcular o valor total do pedido a partir dos itens
-            BigDecimal valorTotal = pedido.getItens().stream()
-                    .map(item -> item.getPrecoUnitario().multiply(new BigDecimal(item.getQuantidade())))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            entregaDTO.setValorPedido(valorTotal);
-
-            entregaDTO.setObservacoes(entregaDTO.getObservacoes());
-
+            CriacaoEntregaDTO entregaDTO = criarEntregaDTO(pedidoDTO, pedido);
             var response = entregaClient.criarEntrega(entregaDTO);
-            if (Boolean.TRUE.equals(HttpStatus.valueOf(response.getStatusCode().value()).is2xxSuccessful())) {
-                log.info("entrega criado com ID: {}", Objects.requireNonNull(response.getBody()).getId());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Entrega criada com ID: {}", Objects.requireNonNull(response.getBody()).getId());
+            } else {
+                log.warn("Criação de entrega retornou status inesperado: {}", response.getStatusCode());
             }
+
         } catch (FeignException e) {
-            // Podemos logar o erro, mas não impedir a criação do pedido
-            log.error("Erro ao solicitar criação de entrega: {}", e.getMessage());
+            // Loga o erro, mas não impedir a criação do pedido
+            log.error("Erro ao solicitar criação de entrega: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Erro inesperado ao processar entrega: {}", e.getMessage(), e);
+            throw e;
         }
+    }
+
+    private CriacaoEntregaDTO criarEntregaDTO(PedidoDTO pedidoDTO, Pedido pedido) {
+        CriacaoEntregaDTO entregaDTO = new CriacaoEntregaDTO();
+        entregaDTO.setPedidoId(pedido.getId());
+        entregaDTO.setTipo(pedidoDTO.getTipoEntrega());
+        entregaDTO.setEnderecoEntrega(pedido.getEnderecoEntrega());
+        entregaDTO.setValorPedido(calcularValorTotal(pedido));
+        entregaDTO.setObservacoes(pedidoDTO.getObservacoes());
+
+        return entregaDTO;
+    }
+
+    private BigDecimal calcularValorTotal(Pedido pedido) {
+        return pedido.getItens().stream()
+                .map(item -> item.getPrecoUnitario().multiply(new BigDecimal(item.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Transactional

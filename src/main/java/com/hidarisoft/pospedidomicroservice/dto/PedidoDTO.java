@@ -32,7 +32,7 @@ public class PedidoDTO {
     @NotNull(message = "Tipo de Entrega é obrigatório")
     private TipoEntrega tipoEntrega;
 
-    private String observacao;
+    private String observacoes;
 
     @NotEmpty(message = "O pedido deve ter pelo menos um item")
     @Valid
