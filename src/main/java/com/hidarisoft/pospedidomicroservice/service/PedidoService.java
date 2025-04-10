@@ -58,6 +58,7 @@ public class PedidoService {
         // Converter para entidade e salvar
         Pedido pedido = pedidoMapper.toEntity(pedidoDTO);
         pedido = pedidoRepository.save(pedido);
+        pedidoDTO.setDataCriacao(pedido.getDataCriacao());
         log.info("Pedido criado com ID: {}", pedido.getId());
         return pedido;
     }
