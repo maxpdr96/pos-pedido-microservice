@@ -21,7 +21,7 @@ public interface ItemPedidoMapper {
     List<ItemPedido> toEntityList(List<ItemPedidoDTO> dtos);
 
     @AfterMapping
-    default void setPedido(ItemPedidoDTO dto, @MappingTarget ItemPedido entity, @Context Pedido pedido) {
+    default void setPedido(@MappingTarget ItemPedido entity, @Context Pedido pedido) {
         if (pedido != null) {
             entity.setPedido(pedido);
         }
