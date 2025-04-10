@@ -1,6 +1,7 @@
 package com.hidarisoft.pospedidomicroservice.mapper;
 
 import com.hidarisoft.pospedidomicroservice.dto.PedidoDTO;
+import com.hidarisoft.pospedidomicroservice.dto.PedidoResponseDTO;
 import com.hidarisoft.pospedidomicroservice.model.ItemPedido;
 import com.hidarisoft.pospedidomicroservice.model.Pedido;
 import org.mapstruct.AfterMapping;
@@ -20,7 +21,10 @@ public interface PedidoMapper {
 
     PedidoDTO toDto(Pedido entity);
 
-    List<PedidoDTO> toDtoList(List<Pedido> entities);
+    @Mapping(source = "id", target = "pedidoId")
+    PedidoResponseDTO toDtoResponse(Pedido entity);
+
+    List<PedidoResponseDTO> toDtoResponseList(List<Pedido> entities);
 
     @AfterMapping
     default void mapItens(PedidoDTO dto, @MappingTarget Pedido entity) {

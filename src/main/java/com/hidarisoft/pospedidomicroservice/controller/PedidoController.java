@@ -3,6 +3,7 @@ package com.hidarisoft.pospedidomicroservice.controller;
 
 import com.hidarisoft.pospedidomicroservice.dto.AtualizacaoStatusDTO;
 import com.hidarisoft.pospedidomicroservice.dto.PedidoDTO;
+import com.hidarisoft.pospedidomicroservice.dto.PedidoResponseDTO;
 import com.hidarisoft.pospedidomicroservice.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +48,8 @@ public class PedidoController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<List<PedidoDTO>> listarTodos() {
-        List<PedidoDTO> pedidos = pedidoService.listarTodos();
+    public ResponseEntity<List<PedidoResponseDTO>> listarTodos() {
+        List<PedidoResponseDTO> pedidos = pedidoService.listarTodos();
         return ResponseEntity.ok(pedidos);
     }
 

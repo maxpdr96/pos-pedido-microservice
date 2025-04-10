@@ -5,6 +5,7 @@ import com.hidarisoft.pospedidomicroservice.dto.AtualizacaoStatusDTO;
 import com.hidarisoft.pospedidomicroservice.dto.CriacaoEntregaDTO;
 import com.hidarisoft.pospedidomicroservice.dto.EntregaDTO;
 import com.hidarisoft.pospedidomicroservice.dto.PedidoDTO;
+import com.hidarisoft.pospedidomicroservice.dto.PedidoResponseDTO;
 import com.hidarisoft.pospedidomicroservice.enums.StatusPedido;
 import com.hidarisoft.pospedidomicroservice.exception.PedidoJaEntregueException;
 import com.hidarisoft.pospedidomicroservice.mapper.PedidoMapper;
@@ -35,9 +36,9 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoDTO> listarTodos() {
+    public List<PedidoResponseDTO> listarTodos() {
         List<Pedido> pedidos = pedidoRepository.findAll();
-        return pedidoMapper.toDtoList(pedidos);
+        return pedidoMapper.toDtoResponseList(pedidos);
     }
 
     @Transactional(readOnly = true)
