@@ -69,6 +69,25 @@
             <version>4.2.1</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- Spring OAuth2 Client para obtenção de tokens -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+
+        <!-- Spring OAuth2 Resource Server para validação de tokens -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- Keycloak Spring Boot Adapter -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-spring-boot-starter</artifactId>
+            <version>21.1.1</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,17 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PedidoJaEntregueException.class)
+    public ResponseEntity<Map<String, Object>> handlePedidoJaEntregueException(PedidoJaEntregueException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Operação não permitida");
+        response.put("message", ex.getMessage());
+        response.put("pedidoId", ex.getPedidoId());
+        response.put("timestamp", LocalDateTime.now());
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
 }
