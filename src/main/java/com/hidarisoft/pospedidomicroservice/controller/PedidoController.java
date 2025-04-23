@@ -4,6 +4,7 @@ package com.hidarisoft.pospedidomicroservice.controller;
 import com.hidarisoft.pospedidomicroservice.dto.AtualizacaoStatusDTO;
 import com.hidarisoft.pospedidomicroservice.dto.PedidoDTO;
 import com.hidarisoft.pospedidomicroservice.dto.PedidoResponseDTO;
+import com.hidarisoft.pospedidomicroservice.service.PedidoSagaService;
 import com.hidarisoft.pospedidomicroservice.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -26,17 +27,24 @@ import java.util.List;
 @Slf4j
 public class PedidoController {
     private final PedidoService pedidoService;
+    private final PedidoSagaService pedidoSagaService;
 
-    public PedidoController(PedidoService pedidoService) {
+    public PedidoController(PedidoService pedidoService, PedidoSagaService pedidoSagaService) {
         this.pedidoService = pedidoService;
+        this.pedidoSagaService = pedidoSagaService;
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
-    public ResponseEntity<PedidoDTO> criarPedido(@Valid @RequestBody PedidoDTO pedidoDTO) {
-        PedidoDTO novoPedido = pedidoService.criar(pedidoDTO);
+    public ResponseEntity<?> criarPedido(@Valid @RequestBody PedidoDTO pedidoDTO) {
+        try {
+        PedidoDTO novoPedido = pedidoSagaService.criarPedido(pedidoDTO);
         log.info("Novo pedido criado: {}", novoPedido);
-        return new ResponseEntity<>(novoPedido, HttpStatus.CREATED);
+            return ResponseEntity.status(HttpStatus.CREATED).body(novoPedido);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao criar pedido: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
@@ -54,7 +62,7 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN','ENTREGADOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','ENTREGADOR','CLIENTE')")
     public ResponseEntity<PedidoDTO> atualizarStatus(
             @PathVariable Long id,
             @Valid @RequestBody AtualizacaoStatusDTO statusDTO) {
@@ -64,8 +72,13 @@ public class PedidoController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> excluirPedido(@PathVariable Long id) {
-        pedidoService.excluirPedido(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> excluirPedido(@PathVariable Long id) {
+        try {
+            pedidoSagaService.excluirPedido(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao excluir pedido: " + e.getMessage());
+        }
     }
 }

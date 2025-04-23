@@ -49,11 +49,11 @@ public class PedidoService {
     }
 
 
-    public PedidoDTO criar(PedidoDTO pedidoDTO) {
-        Pedido pedido = salvaPedido(pedidoDTO);
-        chamaServicoEntrega(pedidoDTO, pedido);
-        return pedidoDTO;
-    }
+    //public PedidoDTO criar(PedidoDTO pedidoDTO) {
+     //   Pedido pedido = salvaPedido(pedidoDTO);
+      //  chamaServicoEntrega(pedidoDTO, pedido);
+     //   return pedidoDTO;
+  //  }
 
     private Pedido salvaPedido(PedidoDTO pedidoDTO) {
         // Converter para entidade e salvar
@@ -62,47 +62,6 @@ public class PedidoService {
         pedidoDTO.setDataCriacao(pedido.getDataCriacao());
         log.info("Pedido criado com ID: {}", pedido.getId());
         return pedido;
-    }
-
-    private void chamaServicoEntrega(PedidoDTO pedidoDTO, Pedido pedido) {
-        // Solicitar criação de entrega para o pedido
-        try {
-            CriacaoEntregaDTO entregaDTO = criarEntregaDTO(pedidoDTO, pedido);
-            var response = entregaClient.criarEntrega(entregaDTO);
-
-            if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("Entrega criada com ID: {}", Objects.requireNonNull(response.getBody()).getId());
-                pedidoDTO.setStatus(StatusPedido.EM_TRANSPORTE);
-                return;
-            }
-
-            pedidoDTO.setStatus(StatusPedido.PROCESSANDO);
-            log.warn("Criação de entrega retornou status inesperado: {}", response.getStatusCode());
-
-        } catch (FeignException e) {
-            // Loga o erro, mas não impedir a criação do pedido
-            log.error("Erro ao solicitar criação de entrega: {}", e.getMessage(), e);
-        } catch (Exception e) {
-            log.error("Erro inesperado ao processar entrega: {}", e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    private CriacaoEntregaDTO criarEntregaDTO(PedidoDTO pedidoDTO, Pedido pedido) {
-        CriacaoEntregaDTO entregaDTO = new CriacaoEntregaDTO();
-        entregaDTO.setPedidoId(pedido.getId());
-        entregaDTO.setTipo(pedidoDTO.getTipoEntrega());
-        entregaDTO.setEnderecoEntrega(pedido.getEnderecoEntrega());
-        entregaDTO.setValorPedido(calcularValorTotal(pedido));
-        entregaDTO.setObservacoes(pedidoDTO.getObservacoes());
-
-        return entregaDTO;
-    }
-
-    private BigDecimal calcularValorTotal(Pedido pedido) {
-        return pedido.getItens().stream()
-                .map(item -> item.getPrecoUnitario().multiply(new BigDecimal(item.getQuantidade())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Transactional
