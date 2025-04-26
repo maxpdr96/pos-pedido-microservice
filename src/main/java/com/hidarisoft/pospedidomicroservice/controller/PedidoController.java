@@ -62,7 +62,7 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN','ENTREGADOR','CLIENTE')")
+    @PreAuthorize("hasAnyRole('ADMIN','ENTREGADOR')")
     public ResponseEntity<PedidoDTO> atualizarStatus(
             @PathVariable Long id,
             @Valid @RequestBody AtualizacaoStatusDTO statusDTO) {

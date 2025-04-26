@@ -9,8 +9,7 @@ import com.hidarisoft.pospedidomicroservice.exception.PedidoJaEntregueException;
 import com.hidarisoft.pospedidomicroservice.mapper.PedidoMapper;
 import com.hidarisoft.pospedidomicroservice.model.Pedido;
 import com.hidarisoft.pospedidomicroservice.repository.PedidoRepository;
-import feign.FeignException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @Service
+@Slf4j
 public class PedidoSagaService {
 
     @Autowired
@@ -28,7 +28,7 @@ public class PedidoSagaService {
     public PedidoSagaService(PedidoRepository pedidoRepository, PedidoMapper pedidoMapper, EntregaClient entregaClient) {
         this.pedidoRepository = pedidoRepository;
         this.pedidoMapper = pedidoMapper;
-        this.entregaClient = entregaClient;;
+        this.entregaClient = entregaClient;
     }
 
     public PedidoDTO criarPedido(PedidoDTO pedidoDTO) {
@@ -41,7 +41,7 @@ public class PedidoSagaService {
             // 3. Se sucesso, atualiza o pedido
             pedido.setStatus(StatusPedido.CRIADO);
             pedidoDTO.setStatus(StatusPedido.CRIADO);
-            pedido = pedidoRepository.save(pedido);
+            pedidoRepository.save(pedido);
             return pedidoDTO;
         } catch (Exception ex) {
             // 4. Compensação: cancela o pedido
@@ -59,19 +59,15 @@ public class PedidoSagaService {
             var response = entregaClient.criarEntrega(entregaDTO);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                //log.info("Entrega criada com ID: {}", Objects.requireNonNull(response.getBody()).getId());
+                log.info("Entrega criada com ID: {}", Objects.requireNonNull(response.getBody()).getId());
                 pedidoDTO.setStatus(StatusPedido.EM_TRANSPORTE);
                 return;
             }
 
             pedidoDTO.setStatus(StatusPedido.PROCESSANDO);
-            //log.warn("Criação de entrega retornou status inesperado: {}", response.getStatusCode());
-
-        } catch (FeignException e) {
-           // log.error("Erro ao solicitar criação de entrega: {}", e.getMessage(), e);
-            throw e;
+            log.warn("Criação de entrega retornou status inesperado: {}", response.getStatusCode());
         } catch (Exception e) {
-            //log.error("Erro inesperado ao processar entrega: {}", e.getMessage(), e);
+            log.error("Erro inesperado ao processar entrega: {}", e.getMessage(), e);
             throw e;
         }
     }
@@ -94,8 +90,7 @@ public class PedidoSagaService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public void excluirPedido(Long pedidoId)
-    {
+    public void excluirPedido(Long pedidoId) {
         Pedido pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
@@ -115,8 +110,7 @@ public class PedidoSagaService {
             }
 
             pedidoRepository.deleteById(pedidoId); // ou atualiza status para "CANCELADO"
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Erro ao excluir entrega. Pedido não removido.");
         }
     }
