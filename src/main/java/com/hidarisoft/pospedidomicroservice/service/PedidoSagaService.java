@@ -2,6 +2,7 @@ package com.hidarisoft.pospedidomicroservice.service;
 
 import com.hidarisoft.pospedidomicroservice.client.EntregaClient;
 import com.hidarisoft.pospedidomicroservice.dto.CriacaoEntregaDTO;
+import com.hidarisoft.pospedidomicroservice.dto.EntregaDTO;
 import com.hidarisoft.pospedidomicroservice.dto.PedidoDTO;
 import com.hidarisoft.pospedidomicroservice.enums.StatusPedido;
 import com.hidarisoft.pospedidomicroservice.exception.PedidoJaEntregueException;
@@ -10,6 +11,7 @@ import com.hidarisoft.pospedidomicroservice.model.Pedido;
 import com.hidarisoft.pospedidomicroservice.repository.PedidoRepository;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -104,8 +106,12 @@ public class PedidoSagaService {
 
         try
         {
-            if (pedido.getEntregaId() != null) {
-                entregaClient.excluirEntrega(pedido.getEntregaId());
+            ResponseEntity<EntregaDTO> response = entregaClient.buscarEntregaPorPedidoId(pedidoId);
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+
+                // Excluir a entrega antes de excluir o pedido
+                Long entregaId = response.getBody().getId();
+                entregaClient.excluirEntrega(entregaId);
             }
 
             pedidoRepository.deleteById(pedidoId); // ou atualiza status para "CANCELADO"
