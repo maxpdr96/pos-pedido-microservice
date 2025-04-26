@@ -20,7 +20,6 @@ import java.util.Objects;
 @Slf4j
 public class PedidoSagaService {
 
-    @Autowired
     private final PedidoRepository pedidoRepository;
     private final PedidoMapper pedidoMapper;
     private final EntregaClient entregaClient;
@@ -105,7 +104,8 @@ public class PedidoSagaService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
 
                 // Excluir a entrega antes de excluir o pedido
-                Long entregaId = response.getBody().getId();
+                Long entregaId = Objects.requireNonNull(response.getBody(), "Response body is null").getId();
+
                 entregaClient.excluirEntrega(entregaId);
             }
 

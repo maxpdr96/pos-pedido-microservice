@@ -25,6 +25,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class PedidoService {
+    public static final String PEDIDO_NAO_ENCONTRADO_COM_ID = "Pedido não encontrado com ID: ";
     private final PedidoRepository pedidoRepository;
     private final PedidoMapper pedidoMapper;
     private final EntregaClient entregaClient;
@@ -44,30 +45,14 @@ public class PedidoService {
     @Transactional(readOnly = true)
     public PedidoDTO buscarPorId(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException(PEDIDO_NAO_ENCONTRADO_COM_ID + id));
         return pedidoMapper.toDto(pedido);
-    }
-
-
-    //public PedidoDTO criar(PedidoDTO pedidoDTO) {
-     //   Pedido pedido = salvaPedido(pedidoDTO);
-      //  chamaServicoEntrega(pedidoDTO, pedido);
-     //   return pedidoDTO;
-  //  }
-
-    private Pedido salvaPedido(PedidoDTO pedidoDTO) {
-        // Converter para entidade e salvar
-        Pedido pedido = pedidoMapper.toEntity(pedidoDTO);
-        pedido = pedidoRepository.save(pedido);
-        pedidoDTO.setDataCriacao(pedido.getDataCriacao());
-        log.info("Pedido criado com ID: {}", pedido.getId());
-        return pedido;
     }
 
     @Transactional
     public PedidoDTO atualizarStatus(Long id, AtualizacaoStatusDTO statusDTO) {
         Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException(PEDIDO_NAO_ENCONTRADO_COM_ID + id));
 
         pedido.setStatus(statusDTO.getStatus());
         pedido = pedidoRepository.save(pedido);
@@ -78,7 +63,7 @@ public class PedidoService {
     @Transactional
     public void excluirPedido(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException(PEDIDO_NAO_ENCONTRADO_COM_ID + id));
 
         // Verificar se o pedido pode ser excluído
         if (pedido.getStatus() == StatusPedido.ENTREGUE) {

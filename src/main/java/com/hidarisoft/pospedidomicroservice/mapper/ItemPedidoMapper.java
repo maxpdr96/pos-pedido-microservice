@@ -4,6 +4,7 @@ package com.hidarisoft.pospedidomicroservice.mapper;
 import com.hidarisoft.pospedidomicroservice.dto.ItemPedidoDTO;
 import com.hidarisoft.pospedidomicroservice.model.ItemPedido;
 import com.hidarisoft.pospedidomicroservice.model.Pedido;
+import java.util.Collections;
 import org.mapstruct.*;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public interface ItemPedidoMapper {
     @Named("mapItemsWithPedido")
     default List<ItemPedido> mapItemsWithPedido(List<ItemPedidoDTO> dtos, @Context Pedido pedido) {
         if (dtos == null) {
-            return null;
+            return Collections.emptyList();
         }
         List<ItemPedido> itens = toEntityList(dtos);
         itens.forEach(item -> item.setPedido(pedido));
