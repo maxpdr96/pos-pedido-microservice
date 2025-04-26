@@ -25,7 +25,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class PedidoService {
-    public static final String PEDIDO_NAO_ENCONTRADO_COM_ID = "Pedido não encontrado com ID: ";
+    private static final String PEDIDO_NAO_ENCONTRADO_COM_ID = "Pedido não encontrado com ID: ";
     private final PedidoRepository pedidoRepository;
     private final PedidoMapper pedidoMapper;
     private final EntregaClient entregaClient;
