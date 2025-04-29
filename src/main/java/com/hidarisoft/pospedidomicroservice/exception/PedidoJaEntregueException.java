@@ -2,7 +2,7 @@ package com.hidarisoft.pospedidomicroservice.exception;
 
 public class PedidoJaEntregueException extends RuntimeException {
 
-    private Long pedidoId;
+    private final Long pedidoId;
 
     public PedidoJaEntregueException(Long pedidoId) {
         super("Não é possível excluir o pedido #" + pedidoId + " pois ele já foi entregue");
